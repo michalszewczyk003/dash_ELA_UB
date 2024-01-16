@@ -72,7 +72,7 @@ def update_figure(year, column):
 
     fig = px.scatter(df_selected, x='U_N', y=column,
                      color="UNB", size=sizes, hover_name='U_NAZWA_UCZELNI',
-                     labels={"U_ROKDYP": "Rok"},
+                     labels={"U_N": "Liczba absolwentów studiów II stopnia"},
                      log_x=True)
 
     return fig
