@@ -17,13 +17,9 @@ from dash import Dash, html, dcc, Output, Input
 sns.set_style("whitegrid")
 sns.set_theme("notebook")
 
-
 # Wczytywanie bazy danych
 df=pd.read_csv("graduates-institution-data.csv", sep=';', decimal=",")
 df_pl=pd.read_csv("graduates-national-data.csv", sep=';', decimal=",")
-
-
-
 
 # Wybieranie z bazy instytucji ważnych zmiennych i zmienianie ich typu
 zmienne=["U_WWB", "U_WWZ", "U_CZAS_ETAT", "U_CZY_BEZR", "U_ROKDYP", "U_N"]
@@ -36,12 +32,8 @@ df=df.sort_values("U_ROKDYP")
 lista_UNB=open("UNB.txt").read().split("\n")
 df['UNB'] = df['U_NAZWA_UCZELNI'].isin(lista_UNB).astype(str)
 
-# Sprawdzenie, czy lista się zgadza (jak tak to mamy po 8 recordów na uniwersytet)
-# for name in lista_UNB:
-#   print(name+" "+str(len(df[df['U_NAZWA_UCZELNI']==name])))
 
 # Wybieranie z bazy krajowej ważnych zmiennych i zmienianie ich typu
-
 zmienne=["PL_WWB", "PL_WWZ", "PL_CZAS_ETAT", "PL_CZY_BEZR", "PL_ROKDYP",]
 df_pl[zmienne]= df_pl[zmienne].astype("float")
 df_pl=df_pl[zmienne].join(df_pl["PL_POZIOM"])
@@ -49,12 +41,14 @@ df_pl=df_pl.query('PL_POZIOM == "2"')
 df_pl=df_pl.drop(columns='PL_POZIOM')
 df_pl=df_pl.sort_values("PL_ROKDYP")
 
+# Ustalanie wielkości dla zmiennych
+size_mapping = {'True': 30, 'False': 5}
 
 app = Dash()
 server = app.server
 
 app.layout = html.Div([
-    dcc.Dropdown(df.columns.unique(), 'U_WWZ', id='selector'),
+    dcc.Dropdown(df.columns.unique()[:4], 'U_WWZ', id='selector'),
     dcc.Graph(id='graph-with-slider'),
     dcc.Slider(
         min=df['U_ROKDYP'].min(),
@@ -73,9 +67,11 @@ app.layout = html.Div([
 
 def update_figure(year, column):
     df_selected = df[df.U_ROKDYP == year]
+    # Zmienne dla wielkości dla wykresu z plotly
+    sizes = [size_mapping[category] for category in df_selected['UNB']]
 
     fig = px.scatter(df_selected, x='U_N', y=column,
-                     color="UNB", hover_name='U_NAZWA_UCZELNI',
+                     color="UNB", size=sizes, hover_name='U_NAZWA_UCZELNI',
                      labels={"U_ROKDYP": "Rok"},
                      log_x=True)
 
